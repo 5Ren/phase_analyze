@@ -9,7 +9,7 @@ data = np.genfromtxt(csv_file_path, delimiter=',')
 
 # 指定範囲の行を設定（例: 3行目から10行目まで）
 start_row = 18
-end_row = 500  #210
+end_row = 48
 
 # 指定範囲のデータを取得
 specified_range_data = data[start_row:end_row + 1, 1]
@@ -46,6 +46,7 @@ plt.ylabel('Value')
 # 周波数スペクトルのプロット
 plt.subplot(1, 2, 2)
 plt.plot(freq[:N//2], amp[:N//2])
+plt.title('FFT Results')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('Amplitude')
 # plt.ylim(0, 0.5)
