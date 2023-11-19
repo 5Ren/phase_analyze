@@ -87,7 +87,8 @@ def fitting_sin_curve(amplitude_data, fps, frequency, subplot_num):
     equation_text = f'Fit Equation: A * sin(2π * {fit_params[1]:.2f} * t + {fit_params[2]:.2f}) + {fit_params[3]:.2f}'
 
     # 終わりの位相
-    end_phase = 2 * np.pi * fit_params[1] * end_time_s + fit_params[2]
+    abs_end_phase = 2 * np.pi * fit_params[1] * end_time_s
+    rel_end_phase = 2 * np.pi * ((fit_params[1] * end_time_s) % 1) + fit_params[2]
 
     # プロット
     plt.subplot(subplot_row, subplot_column, subplot_num)
@@ -96,12 +97,40 @@ def fitting_sin_curve(amplitude_data, fps, frequency, subplot_num):
     plt.plot(time, fit_amplitude, color='red', label=equation_text, linestyle='--')
     ymin, ymax = -0.15, 0.15
     plt.vlines(end_time_s, ymin, ymax, colors='green', linewidth=2,
-               label=f'End phase: {(2 * fit_params[1] * end_time_s + fit_params[2]):.2f} π ')
+               label=f'End phase: {(abs_end_phase / 3.14):.2f}π ({(rel_end_phase / 3.14):.2f}π)')
     plt.xlabel('Time (s)')
     plt.ylabel('Amplitude')
     plt.legend()
 
-    return end_phase
+    return abs_end_phase
+
+
+def run(file_path):
+    # グラフのプロット
+    plt.figure(figsize=(12, 12))
+
+    # CSVファイルの読み込み
+    row_data = np.genfromtxt(csfile_path, delimiter=',')
+
+    # FFTする範囲を ndarray にする
+    specified_range_data = fetch_amplitude(start_index=70, end_index=200, stretch_data=row_data, subplot_num=1)
+
+    # FFT を実行し、周波数をとってくる
+    frequency = excuse_fft(amplitude_data=specified_range_data, dt_sec=fps ** -1, subplot_num=3)
+
+    # 正弦波にフィッティングするデータをndarrayにする
+    sin_curve_fitting_data = fetch_amplitude(start_index=25, end_index=48, stretch_data=row_data, subplot_num=5)
+
+    # sin curve フィッティングして，位相を取ってくる
+    phase_before_hit = fitting_sin_curve(amplitude_data=sin_curve_fitting_data, fps=fps,
+                                         frequency=frequency, subplot_num=7)
+
+    # グラフ表示
+    plt.tight_layout()
+    plt.savefig("sin.svg")  # プロットしたグラフをファイルsin.pngに保存する
+    plt.show()
+
+
 
 
 if __name__ == '__main__':
@@ -124,11 +153,13 @@ if __name__ == '__main__':
     frequency = excuse_fft(amplitude_data=specified_range_data, dt_sec=fps ** -1, subplot_num=3)
 
     # 正弦波にフィッティングするデータをndarrayにする
-    sin_curve_fitting_data = fetch_amplitude(start_index=20, end_index=48, stretch_data=row_data, subplot_num=5)
+    sin_curve_fitting_data = fetch_amplitude(start_index=25, end_index=48, stretch_data=row_data, subplot_num=5)
 
     # sin curve フィッティングして，位相を取ってくる
-    phase_before_hit = fitting_sin_curve(amplitude_data=sin_curve_fitting_data, fps=fps, frequency=frequency, subplot_num=7)
+    phase_before_hit = fitting_sin_curve(amplitude_data=sin_curve_fitting_data, fps=fps,
+                                         frequency=frequency, subplot_num=7)
 
     # グラフ表示
     plt.tight_layout()
+    plt.savefig("sin.svg")  # プロットしたグラフをファイルsin.pngに保存する
     plt.show()
